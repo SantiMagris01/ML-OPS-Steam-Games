@@ -175,38 +175,3 @@ def sentiment_analysis(year: int):
     }
 
     return result
-
-games_df['developer'].fillna('', inplace=True)
-games_df['tags'].fillna('', inplace=True)
-games_df['price'].fillna('', inplace=True)
-
-# Crear una columna 'features' que contiene la concatenación de las columnas relevantes
-games_df['features'] = games_df['developer'] + ' ' + games_df['tags'] + ' ' + games_df['price'].astype(str)
-
-# Crear la matriz TF-IDF a partir de la columna 'features'
-tfidf_vectorizer = TfidfVectorizer()
-tfidf_matrix = tfidf_vectorizer.fit_transform(games_df['features'])
-
-# Entrenar el modelo Nearest Neighbors con la matriz TF-IDF
-nn_model = NearestNeighbors(n_neighbors=6, metric='cosine', algorithm='brute')
-nn_model.fit(tfidf_matrix)
-
-# Función para obtener recomendaciones de juegos similares
-@app.get('/recomendacion_juego/{product_id}')
-def recomendacion_juego(product_id: int):
-    # Encontrar el índice del juego en función del 'id' del producto
-    game_index = games_df[games_df['id'] == product_id].index[0]
-
-    # Encontrar los juegos más similares utilizando Nearest Neighbors
-    distances, indices = nn_model.kneighbors(tfidf_matrix[game_index], n_neighbors=6)
-
-    # Crear una lista de juegos recomendados (excluyendo el juego de consulta)
-    recommended_games = []
-    for i in range(1, len(indices[0])):
-        recommended_game = {
-            "id": int(games_df.iloc[indices[0][i]]['id']),  # Convierte a int
-            "app_name": str(games_df.iloc[indices[0][i]]['app_name']),  # Convierte a str
-        }
-        recommended_games.append(recommended_game)
-
-    return {'juegos recomendados': recommended_games}
