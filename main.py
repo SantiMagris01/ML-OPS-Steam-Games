@@ -7,7 +7,7 @@ app = FastAPI()
 
 games_df = pd.read_csv('new_games.csv')
 reviews_df = pd.read_csv('new_review.csv')
-archivos_partes = ['items_parte_1.csv', 'items_parte_2.csv','items_parte_5.csv']
+archivos_partes = ['items_parte_1.csv', 'items_parte_5.csv']
 
 # Crear una lista de DataFrames, uno por cada parte
 partes = [pd.read_csv(archivo) for archivo in archivos_partes]
