@@ -20,37 +20,6 @@ def read_root():
     return {'message' : 'API para consultar datos de Juegos'}
 
 
-@app.get('/userdata/{User_id}')
-def userdata(User_id: str):
-        # Encontrar todos los 'item_id' del usuario en 'items_df'
-    user_items = items_df[items_df['user_id'] == User_id]['item_id']
-
-    # Encontrar los precios de esos 'item_id' en 'games_df'
-    user_prices = games_df[games_df['id'].isin(user_items)]['price']
-
-    # Calcular la cantidad de dinero gastado
-    total_money_spent = user_prices.sum()
-
-     # Redondear el valor a dos decimales
-    money_spent_rounded = round(total_money_spent.item(), 2)
-
-    # Convertir a cadena con el formato deseado (dos decimales)
-    money_spent_formatted = "{:.2f}".format(money_spent_rounded)
-
-    # Encontrar el porcentaje de recomendación en 'reviews_df'
-    user_reviews = reviews_df[reviews_df['user_id'] == User_id]
-    recommend_percentage = (user_reviews['recommend'].sum() / len(user_reviews)) * 100
-
-    # Encontrar la cantidad de items en 'items_df'
-    user_item_count = items_df[items_df['user_id'] == User_id]['items_count'].iloc[0]
-
-    return {
-        "user_id": User_id,
-        "money_spent": money_spent_formatted,
-        "recommend_percentage": recommend_percentage,
-        "item_count": int(user_item_count)
-    }
-
 
 @app.get('/counterviews/{start_date},{end_date}')
 def countreviews(start_date: str, end_date: str):
@@ -103,28 +72,6 @@ def get_genre_ranking(genero: str):
         return None
     
 
-@app.get('/userforgenre/{genero}')
-def userforgenre(genero: str):
-    # Paso 1: Filtrar juegos por género
-    genre_games = games_df[games_df['genres'].str.contains(genero, case=False, na=False)]
-    genre_game_ids = genre_games['id'].tolist()
-
-    # Paso 2: Filtrar usuarios por juegos del género
-    genre_users = items_df[items_df['item_id'].isin(genre_game_ids)]
-
-    # Paso 3: Crear un ranking de usuarios basado en las horas jugadas en ese género
-    genre_users_ranking = genre_users.groupby('user_id')['playtime_forever'].sum().reset_index()
-    genre_users_ranking = genre_users_ranking.sort_values(by='playtime_forever', ascending=False).head(5)
-
-    # Paso 4: Obtener user_id, user_url y horas jugadas de los 5 mejores usuarios
-    top_users = []
-    for _, row in genre_users_ranking.iterrows():
-        user_id = row['user_id']
-        user_playtime = row['playtime_forever']
-        user_url = items_df[items_df['user_id'] == user_id]['user_url'].iloc[0]
-        top_users.append({"user_id": user_id, "user_url": user_url, "playtime_forever": user_playtime})
-
-    return top_users
 
 
 @app.get("/developer/{developer}")
